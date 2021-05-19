@@ -13,7 +13,7 @@ Desktop.ini
 *~
 
 # JetBrains
-.idea
+.idea/
 
 # npm
 node_modules

@@ -1,44 +1,57 @@
-const express = require('express');
-const Index = express.Router();
-const config = require('config');
-const {PrismaClient} = require('@prisma/client')
+const express = require("express");
+const Admin = express.Router();
+const config = require("config");
+const { PrismaClient } = require("@prisma/client");
 const bcryptjs = require("bcryptjs");
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
-Index.all("/", (req, res) => {
-    res.status(403).send("Not allowed");
-})
+Admin.use((req, res, next) => {
+  const { isAdmin } = res.locals.user;
+  isAdmin
+    ? next()
+    : res
+        .status(403)
+        .send(
+          "Forbidden                                                                                                                                                                                                            "
+        );
+});
 
-Index.post("/register", async (req, res) => {
+Admin.all("/", (req, res) => {
+  res.status(403).send("Not allowed");
+});
 
-    const {email, password} = req.body;
-    if (!email || !password) {
-        res.status(404).send("No such user found");
-        return;
-    }
+Admin.all("/list", (req, res) => {
+  res.status(403).send("Not allowed");
+});
 
-    const salt = bcryptjs.genSaltSync(config.salt);
-    const hash = bcryptjs.hashSync(password, salt);
+Admin.post("/register", async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    res.status(404).send("No such user found");
+    return;
+  }
 
-    try {
-        let user = await prisma.user.create({
-            data: {
-                email,
-                password: hash
-            },
-            select: {
-                email: true,
-                isAdmin: true
-            }
-        })
+  const salt = bcryptjs.genSaltSync(config.salt);
+  const hash = bcryptjs.hashSync(password, salt);
 
-        res.status(201).json(user);
-    } catch (e) {
-        console.log(e);
-        res.status(500).send("Could not register");
-    }
+  try {
+    let user = await prisma.user.create({
+      data: {
+        email,
+        password: hash,
+      },
+      select: {
+        email: true,
+        isAdmin: true,
+      },
+    });
 
-})
+    res.status(201).json(user);
+  } catch (e) {
+    console.log(e);
+    res.status(500).send("Could not register");
+  }
+});
 
-module.exports = Index;
+module.exports = Admin;

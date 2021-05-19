@@ -44,6 +44,11 @@ User.post("/login", async (req, res) => {
     }
 
     delete user["password"];
+    let token = jwt.sign(user, config["secret"], { expiresIn: "1day" });
+    if (user.isAdmin) {
+      res.set("token", token).send(token);
+      return;
+    }
 
     let chunk = await Chunk.hasChunk(email);
     console.log("Chunk Already There-Id", chunk);
@@ -52,7 +57,7 @@ User.post("/login", async (req, res) => {
       console.log("Chunk created-Id", chunk);
     }
     user["chunk"] = chunk;
-    let token = jwt.sign(user, config["secret"], { expiresIn: "1day" });
+
     res.set("token", token).send(token);
   } catch (e) {
     console.log(e);

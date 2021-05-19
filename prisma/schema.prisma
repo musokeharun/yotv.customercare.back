@@ -1,0 +1,89 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Bulk {
+  id        Int      @default(autoincrement()) @id
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  data      Json?
+  popIndex  Int      @default(0)
+  contactName String @db.VarChar(255)
+  status    Boolean  @default(true)
+  chunks    Chunk[]
+}
+
+model User {
+  id       Int      @default(autoincrement()) @id
+  email    String   @unique
+  password String  @db.VarChar(255)
+  chunks   Chunk[]
+  calls    Call[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
+  isAdmin Boolean  @default(false)
+}
+
+model Chunk {
+  id        Int      @default(autoincrement()) @id
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
+  popCount  Int      @default(0)
+  user      User     @relation(fields: [userId], references: [id])
+  bulk      Bulk     @relation(fields: [bulkId], references: [id])
+  userId    Int
+  bulkId    Int
+  status    Boolean  @default(true)
+}
+
+model Call {
+  id        Int      @default(autoincrement()) @id
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  contact   String   @db.VarChar(255) @unique
+  respondedTo Boolean @default(false)
+  updatedAt DateTime @updatedAt @default(now())
+  otherUsers String?
+  responseId Int?
+  reponse Response? @relation(fields: [responseId], references: [id])
+}
+
+model Response {
+  id          Int      @default(autoincrement()) @id
+  firstResponse FirstDegree @default(RECEIVED)
+  gender Gender
+  lastResponse  ResponseText
+  other  String?
+  likely Int @default(0)
+  call Call?
+}
+
+enum FirstDegree {
+  BUSY
+  RECEIVED
+  REJECTED
+  OFFLINE
+}
+
+enum Gender {
+    MALE
+    FEMALE
+    NONE
+}
+
+enum ResponseText {
+    NO_RESPONSE
+    POOR_NETWORK
+    BUFFERING
+    DATA_USAGE
+    CONTENT_RELATED
+    OTHER
+}

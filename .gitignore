@@ -12,6 +12,8 @@ Desktop.ini
 .directory
 *~
 
+# JetBrains
+.idea
 
 # npm
 node_modules

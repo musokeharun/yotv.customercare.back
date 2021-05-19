@@ -12,4 +12,3 @@ RUN npm install
 
 EXPOSE 80 443 22 
 CMD [ "npm", "start" ]
-

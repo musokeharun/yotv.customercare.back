@@ -19,7 +19,7 @@ services:
     container_name: nodeSide
     restart: always
   mysql:
-    image: mysql:latest
+    image: mysql:8
     networks:
       - backend
     environment:
@@ -27,6 +27,9 @@ services:
       - MYSQL_USER=user
       - MYSQL_PASSWORD=user
       - MYSQL_DATABASE=yotvCustomercare
+      - DATABASE_URL="mysql://root:@localhost:3306/yotvCustomercare?schema=public"
+      ports:
+      - "3306:3306"
     container_name: mysqlSide
     restart: always
   phpmyadmin:
@@ -35,8 +38,7 @@ services:
       - mysql
     networks:
       - backend
-    ports:
-      - "3500:80"
+    b
     environment:
       - PMA_HOST=mysqlSide
       - PMA_PORT= 3306

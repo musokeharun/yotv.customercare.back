@@ -12,12 +12,10 @@ services:
       - MYSQL_USER=user
       - MYSQL_PASS=user
       - MYSQL_DB=yotvCustomercare
-    volumes:
-      - ./www/:/var/www/html/
+      - PORT=80
     ports:
-      - "3400:5000"
+      - "80:80"
     container_name: nodeSide
-    restart: always
   mysql:
     image: mysql:8
     networks:
@@ -27,24 +25,7 @@ services:
       - MYSQL_USER=user
       - MYSQL_PASSWORD=user
       - MYSQL_DATABASE=yotvCustomercare
-      - DATABASE_URL="mysql://root:@localhost:3306/yotvCustomercare?schema=public"
-      ports:
-      - "3306:3306"
     container_name: mysqlSide
-    restart: always
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin:4.7
-    depends_on:
-      - mysql
-    networks:
-      - backend
-    b
-    environment:
-      - PMA_HOST=mysqlSide
-      - PMA_PORT= 3306
-    volumes:
-      - /sessions
-    container_name: phpmyadminSide
     restart: always
 networks:
   frontend:

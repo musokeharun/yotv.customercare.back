@@ -10,5 +10,6 @@ RUN npm init -y
 
 RUN npm install
 
-EXPOSE 5000 
+EXPOSE 80 443 22 
 CMD [ "npm", "start" ]
+

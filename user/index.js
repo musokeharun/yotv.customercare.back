@@ -44,20 +44,21 @@ User.post("/login", async (req, res) => {
     }
 
     delete user["password"];
-    let token = jwt.sign(user, config["secret"], { expiresIn: "1day" });
-    if (user.isAdmin) {
-      res.set("token", token).send(token);
-      return;
-    }
 
     let chunk = await Chunk.hasChunk(email);
     console.log("Chunk Already There-Id", chunk);
     if (!chunk) {
-      chunk = await Chunk.createChunk(email);
-      console.log("Chunk created-Id", chunk);
+      if (!user.isAdmin) {
+        chunk = await Chunk.createChunk(email);
+        console.log("Chunk created-Id", chunk);
+      }
     }
-    user["chunk"] = chunk;
 
+    if (!user.isAdmin) {
+      user["chunk"] = chunk;
+    }
+
+    let token = jwt.sign(user, config["secret"], { expiresIn: "1day" });
     res.set("token", token).send(token);
   } catch (e) {
     console.log(e);
@@ -68,6 +69,10 @@ User.post("/login", async (req, res) => {
 User.post("/call", async (req, res) => {
   try {
     const { chunk: chunkId, email } = res.locals.user;
+
+    if (!chunkId) {
+      return res.status(404).send("Not Allowed to Call");
+    }
 
     //NOT YET RESPONDED TO
     let notYetRespondedTo = await prisma.call.findFirst({
@@ -136,16 +141,18 @@ User.post("/call", async (req, res) => {
     }
 
     let contact;
+    let others;
     let otherUsers = null;
 
     // TODO CHECK IF SUBSCRIBED IN WHILE LOOP
 
     while (true) {
-      contact = bulk[lastIndex][contactName];
+      others = bulk[lastIndex];
+      contact = String(others[contactName]);
 
       let checkContactIfCalled = await prisma.call.findUnique({
         where: {
-          contact,
+          contact: String(contact),
         },
         select: {
           id: true,
@@ -181,7 +188,7 @@ User.post("/call", async (req, res) => {
 
     const call = await prisma.call.upsert({
       where: {
-        contact,
+        contact: String(contact),
       },
       create: {
         user: {
@@ -208,6 +215,9 @@ User.post("/call", async (req, res) => {
 
     if (otherUsers) {
       call.otherUsers = otherUsers;
+    }
+    if (others) {
+      call.others = others;
     }
 
     res.status(201).json(call);

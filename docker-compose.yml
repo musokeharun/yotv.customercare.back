@@ -3,7 +3,7 @@ services:
   nodejs:
     build:
       context: .
-    image: yotv/customercare
+    image: harunamusoke/yotv
     networks:
       - frontend
       - backend

@@ -21,8 +21,22 @@ Admin.all("/", (req, res) => {
   res.status(403).send("Not allowed");
 });
 
-Admin.all("/list", (req, res) => {
-  res.status(403).send("Not allowed");
+Admin.all("/users", async (req, res) => {
+  try {
+    let users = await prisma.user.findMany({
+      where: {
+        isAdmin: false,
+      },
+      select: {
+        email: true,
+        createdAt: true,
+      },
+    });
+    res.json(users);
+  } catch (e) {
+    console.log(e);
+    res.status(500).send("Could not process");
+  }
 });
 
 Admin.post("/register", async (req, res) => {
@@ -41,6 +55,7 @@ Admin.post("/register", async (req, res) => {
         email,
         password: hash,
       },
+
       select: {
         email: true,
         isAdmin: true,

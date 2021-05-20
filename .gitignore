@@ -3,6 +3,10 @@
 Icon?
 ._*
 
+# env
+.env
+*.env
+
 # Windows
 Thumbs.db
 ehthumbs.db

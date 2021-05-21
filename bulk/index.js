@@ -125,7 +125,7 @@ Data.post("/upload", (req, res) => {
       }
     };
 
-    ProcessData().then((r) => log(r));
+    ProcessData().then((r) => console.log(r));
   });
 });
 

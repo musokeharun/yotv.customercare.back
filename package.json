@@ -19,7 +19,7 @@
     "prisma": "^2.22.1"
   },
   "scripts": {
-    "start": "npx prisma generate && npx db push && node server.js",
+    "start": "npx prisma generate && npx prisma db push && node server.js",
     "server": "nodemon server.js",
     "client": "cd client && yarn start",
     "clientinstall": "cd client && yarn",

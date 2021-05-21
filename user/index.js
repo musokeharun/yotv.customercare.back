@@ -45,16 +45,11 @@ User.post("/login", async (req, res) => {
 
     delete user["password"];
 
-    let chunk = await Chunk.hasChunk(email);
-    console.log("Chunk Already There-Id", chunk);
-    if (!chunk) {
-      if (!user.isAdmin) {
-        chunk = await Chunk.createChunk(email);
-        console.log("Chunk created-Id", chunk);
-      }
-    }
-
     if (!user.isAdmin) {
+      // GET AVAILBLE
+      // let chunk = await Chunk.hasChunk(email);
+      let chunk = await Chunk.getAvailableChunkId(email);
+      console.log("Chunk-Id", chunk);
       user["chunk"] = chunk;
     }
 
@@ -136,7 +131,11 @@ User.post("/call", async (req, res) => {
     // GET CONTACT
     let { popIndex: lastIndex, contactName } = chunk.bulk;
 
-    if (!bulk.length || Number(lastIndex) >= bulk.length) {
+    if (
+      !bulk.length ||
+      Number(lastIndex) >= bulk.length ||
+      Number(lastIndex) >= bulk.length - 1
+    ) {
       res.status(404).send("Chunk out of data.Re::Login");
     }
 
@@ -145,7 +144,6 @@ User.post("/call", async (req, res) => {
     let otherUsers = null;
 
     // TODO CHECK IF SUBSCRIBED IN WHILE LOOP
-
     while (true) {
       others = bulk[lastIndex];
       contact = String(others[contactName]);
@@ -229,7 +227,15 @@ User.post("/call", async (req, res) => {
 
 User.post("/response", async (req, res) => {
   try {
-    const { id, firstResponse, gender, lastResponse, other, likely } = req.body;
+    const {
+      id,
+      firstResponse,
+      gender,
+      lastResponse,
+      other,
+      likely,
+      resolution,
+    } = req.body;
 
     if (!id || !firstResponse || firstResponse == "") {
       res.status(404).send("No response data");
@@ -283,6 +289,7 @@ User.post("/response", async (req, res) => {
           lastResponse: lastResponse.toUpperCase(),
           likely: Number(likely),
           other,
+          resolution,
           call: {
             connect: {
               id: Number(id),

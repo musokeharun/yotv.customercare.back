@@ -17,7 +17,7 @@ model Bulk {
   data      Json?
   popIndex  Int      @default(0)
   contactName String @db.VarChar(255)
-  status    Boolean  @default(true)
+  status    Boolean  @default(false)
   chunks    Chunk[]
 }
 
@@ -63,6 +63,7 @@ model Response {
   lastResponse  ResponseText
   other  String?
   likely Int @default(0)
+  resolution String?
   call Call?
 }
 

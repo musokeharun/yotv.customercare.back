@@ -16,12 +16,6 @@ const insertBulk = async (data, name = "msisdn") => {
     let today = new Date();
     today.setUTCHours(0, 0, 0, 0);
 
-    const todayAndDeleted = await prisma.bulk.updateMany({
-      data: {
-        status: false,
-      },
-    });
-
     let insertBulk = await prisma.bulk.create({
       data: {
         data,
@@ -90,7 +84,6 @@ Data.post("/upload", (req, res) => {
         B: "last_subscibed",
         C: "amount",
       },
-      range: "A1:C1000",
     });
 
     let i = 0;
@@ -111,6 +104,15 @@ Data.post("/upload", (req, res) => {
     });
 
     try {
+      let i,
+        j,
+        temparray,
+        chunk = 1000;
+      for (i = 0, j = array.length; i < j; i += chunk) {
+        temparray = array.slice(i, i + chunk);
+        // do whatever
+      }
+
       let r = insertBulk(data);
       res.send(r);
     } catch (error) {

@@ -20,6 +20,7 @@ const insertBulk = async (data, name = "msisdn") => {
       data: {
         data,
         contactName: name,
+        status: false,
       },
     });
 

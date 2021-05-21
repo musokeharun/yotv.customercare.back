@@ -71,7 +71,7 @@ Data.post("/upload", (req, res) => {
   dataFile = req.files.dataFile;
   uploadPath = __dirname + "/uploads/" + dataFile.name;
 
-  // console.log(dataFile.mimetype);
+  console.log(dataFile.mimetype);
 
   // Use the mv() method to place the file somewhere on your server
   dataFile.mv(uploadPath, function (err) {
@@ -103,22 +103,29 @@ Data.post("/upload", (req, res) => {
       }
     });
 
-    try {
-      let i,
-        j,
-        temparray,
-        chunk = 1000;
-      for (i = 0, j = array.length; i < j; i += chunk) {
-        temparray = array.slice(i, i + chunk);
-        // do whatever
-      }
+    console.log(data.length);
 
-      let r = insertBulk(data);
-      res.send(r);
-    } catch (error) {
-      console.log(error);
-      res.status(500).send("Could not process");
-    }
+    const ProcessData = async () => {
+      try {
+        let i,
+          j,
+          temparray,
+          chunk = 1000;
+        for (i = 0, j = data.length; i < j; i += chunk) {
+          temparray = data.slice(i, i + chunk);
+          await insertBulk(temparray);
+          console.log(temparray.length);
+        }
+        res.send("Added Chunks");
+        return;
+      } catch (error) {
+        console.log(error);
+        res.status(500).send("Could not process");
+        return;
+      }
+    };
+
+    ProcessData().then((r) => log(r));
   });
 });
 

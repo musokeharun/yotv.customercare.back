@@ -6,6 +6,9 @@ const bcryptjs = require("bcryptjs");
 
 const prisma = new PrismaClient();
 
+const today = new Date();
+today.setUTCHours(0, 0, 0, 0);
+
 Admin.use((req, res, next) => {
   const { isAdmin } = res.locals.user;
   isAdmin
@@ -66,6 +69,43 @@ Admin.post("/register", async (req, res) => {
   } catch (e) {
     console.log(e);
     res.status(500).send("Could not register");
+  }
+});
+
+Admin.post("/dashboard", async (req, res) => {
+  try {
+    const calls = await prisma.call.count({
+      where: {
+        createdAt: {
+          gte: today,
+        },
+        respondedTo: true,
+      },
+    });
+
+    const currentBulk = await prisma.bulk.findFirst({
+      where: {
+        status: true,
+      },
+      select: {
+        data: true,
+      },
+    });
+
+    let i = 0;
+    while (typeof currentBulk.data !== "object") {
+      currentBulk.data = JSON.parse(currentBulk.data);
+      i++;
+      if (i >= 4) break;
+    }
+
+    res.json({
+      calls,
+      total: currentBulk.data.length,
+    });
+  } catch (e) {
+    console.log(e);
+    res.status(500).send("Couldnot process");
   }
 });
 

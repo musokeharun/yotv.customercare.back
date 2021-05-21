@@ -51,6 +51,7 @@ model Call {
   contact   String   @db.VarChar(255) @unique
   respondedTo Boolean @default(false)
   updatedAt DateTime @updatedAt @default(now())
+  createdAt DateTime @default(now())
   otherUsers String?
   responseId Int?
   reponse Response? @relation(fields: [responseId], references: [id])

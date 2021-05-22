@@ -74,21 +74,13 @@ Admin.post("/register", async (req, res) => {
 
 Admin.post("/dashboard", async (req, res) => {
   try {
-    const calls = await prisma.call.count({
-      where: {
-        createdAt: {
-          gte: today,
-        },
-        respondedTo: true,
-      },
-    });
-
     const currentBulk = await prisma.bulk.findFirst({
       where: {
         status: true,
       },
       select: {
         data: true,
+        popIndex: true,
       },
     });
 
@@ -163,7 +155,7 @@ Admin.post("/dashboard", async (req, res) => {
     };
 
     res.json({
-      calls,
+      calls: currentBulk.popIndex,
       total: currentBulk.data.length,
       current,
       yesterday,

@@ -99,9 +99,77 @@ Admin.post("/dashboard", async (req, res) => {
       if (i >= 4) break;
     }
 
+    // CURRENT USER STATISTICS
+    let currentData = await prisma.$queryRaw(
+      "SELECT u.email as label,COUNT(c.id) as value FROM `Call`	c LEFT JOIN `User` u ON u.id = c.userId WHERE date(CURRENT_DATE()) = date(c.`createdAt`) GROUP BY u.email;"
+    );
+
+    let current = {
+      data: currentData,
+      title: "CURRENT OVERVIEW",
+      type: "bar",
+      x: "User",
+      y: "Calls",
+    };
+
+    // YESTERDAY USER STATISTICS
+    let yesterdayData = await prisma.$queryRaw(
+      "SELECT u.email as label,COUNT(c.id) as value FROM `Call`	c LEFT JOIN `User` u ON u.id = c.userId WHERE date( DATE_SUB(NOW(), INTERVAL 1 DAY) ) = date(c.`createdAt`) GROUP BY u.email;"
+    );
+
+    let yesterday = {
+      data: yesterdayData,
+      title: "YESTERDAY OVERVIEW",
+      type: "bar",
+      x: "User",
+      y: "Calls",
+    };
+
+    // FIRST RESPONSE
+    let firstResponseData = await prisma.$queryRaw(
+      "SELECT `Response`.`firstResponse` as label, COUNT(`Response`.`id`) as value FROM `Response` INNER JOIN `Call` ON `Call`.`responseId` = `Response`.`id` WHERE date(NOW()) = date(`Call`.`createdAt`) GROUP BY `Response`.`firstResponse`;"
+    );
+
+    let firstResponse = {
+      data: firstResponseData,
+      title: "FIRST RESPONSE OVERVIEW",
+      type: "donut",
+    };
+
+    // LAST RESPONSE
+    let lastResponseData = await prisma.$queryRaw(
+      "SELECT `Response`.`lastResponse` as label, COUNT(`Response`.`id`) as value FROM `Response` INNER JOIN `Call` ON `Call`.`responseId` = `Response`.`id` WHERE date(NOW()) = date(`Call`.`createdAt`) GROUP BY `Response`.`lastResponse`;"
+    );
+
+    let lastResponse = {
+      data: lastResponseData,
+      title: "LAST RESPONSE OVERVIEW",
+      type: "bar",
+      x: "Response",
+      y: "Count",
+    };
+
+    //WEEK ANALYTICS
+    let lastWeekData = await prisma.$queryRaw(
+      "SELECT COUNT(id) as value, date(`createdAt`) as label FROM `Call` GROUP BY date(`createdAt`) ORDER BY date(`createdAt`) DESC LIMIT 7;"
+    );
+
+    let lastWeek = {
+      data: lastWeekData,
+      title: "WEEK OVERVIEW",
+      type: "area",
+      x: "Date of Week",
+      y: "Calls",
+    };
+
     res.json({
       calls,
       total: currentBulk.data.length,
+      current,
+      yesterday,
+      firstResponse,
+      lastResponse,
+      lastWeek,
     });
   } catch (e) {
     console.log(e);

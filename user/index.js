@@ -49,7 +49,7 @@ User.post("/login", async (req, res) => {
       // GET AVAILBLE
       // let chunk = await Chunk.hasChunk(email);
       let chunk = await Chunk.getAvailableChunkId(email);
-      console.log("Chunk-Id", chunk);
+      // console.log("Chunk-Id", chunk);
       user["chunk"] = chunk;
     }
 

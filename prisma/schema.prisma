@@ -19,6 +19,7 @@ model Bulk {
   contactName String @db.VarChar(255)
   status    Boolean  @default(false)
   calls     Call[]
+  tag       String?
 }
 
 model User {

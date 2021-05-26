@@ -18,30 +18,17 @@ model Bulk {
   popIndex  Int      @default(0)
   contactName String @db.VarChar(255)
   status    Boolean  @default(false)
-  chunks    Chunk[]
+  calls     Call[]
 }
 
 model User {
   id       Int      @default(autoincrement()) @id
   email    String   @unique
   password String  @db.VarChar(255)
-  chunks   Chunk[]
   calls    Call[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt @default(now())
   isAdmin Boolean  @default(false)
-}
-
-model Chunk {
-  id        Int      @default(autoincrement()) @id
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt @default(now())
-  popCount  Int      @default(0)
-  user      User     @relation(fields: [userId], references: [id])
-  bulk      Bulk     @relation(fields: [bulkId], references: [id])
-  userId    Int
-  bulkId    Int
-  status    Boolean  @default(true)
 }
 
 model Call {
@@ -54,7 +41,10 @@ model Call {
   createdAt DateTime @default(now())
   otherUsers String?
   responseId Int?
+  bulkId Int?
   reponse Response? @relation(fields: [responseId], references: [id])
+  bulk Bulk? @relation(fields: [bulkId], references: [id])
+
 }
 
 model Response {

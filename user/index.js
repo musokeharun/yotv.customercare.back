@@ -3,7 +3,6 @@ const User = express.Router();
 const jwt = require("jsonwebtoken");
 const bcryptjs = require("bcryptjs");
 const config = require("config");
-const Chunk = require("../chunk");
 
 const {PrismaClient} = require("@prisma/client");
 
@@ -44,15 +43,6 @@ User.post("/login", async (req, res) => {
         }
 
         delete user["password"];
-
-        if (!user.isAdmin) {
-            // GET AVAILABLE
-            // let chunk = await Chunk.hasChunk(email);
-            let chunk = await Chunk.getAvailableChunkId(email);
-            // console.log("Chunk-Id", chunk);
-            user["chunk"] = chunk;
-        }
-
         let token = jwt.sign(user, config["secret"], {expiresIn: "1day"});
         res.set("token", token).send(token);
     } catch (e) {
@@ -63,9 +53,9 @@ User.post("/login", async (req, res) => {
 
 User.post("/call", async (req, res) => {
     try {
-        const {chunk: chunkId, email} = res.locals.user;
+        const {isAdmin, email} = res.locals.user;
 
-        if (!chunkId) {
+        if (isAdmin) {
             return res.status(404).send("Not Allowed to Call");
         }
 
@@ -89,37 +79,29 @@ User.post("/call", async (req, res) => {
         }
 
         // TODO GET NUMBER FROM BULK
-        let chunk = await prisma.chunk.findUnique({
+        let currentBulk = await prisma.bulk.findFirst({
             where: {
-                id: chunkId,
+                status: true,
             },
             select: {
                 id: true,
-                popCount: true,
-                bulk: {
-                    select: {
-                        id: true,
-                        data: true,
-                        popIndex: true,
-                        contactName: true,
-                    },
-                },
+                data: true,
+                popIndex: true,
+                contactName: true,
             },
         });
 
-        if (!chunk) {
-            res.status(404).send("No Chunk Created Re::Login");
+        if (!currentBulk) {
+            res.status(404).send("No Chunk Created Re::Login or Contact Admin");
             return;
         }
 
-        console.log("Chunk Id", chunk.id);
-        console.log("Bulk Id", chunk.bulk.id);
-        console.log("Last Pop Index", chunk.bulk.popIndex);
-        // res.json(JSON.parse(JSON.parse(chunk.bulk.data)));
+        console.log("Bulk Id", currentBulk.id);
+        console.log("Last Pop Index", currentBulk.popIndex);
 
-        let bulk = chunk.bulk.data;
+        let bulk = currentBulk.data;
         let i = 0;
-        while (typeof bulk === "string") {
+        while (typeof bulk !== "object") {
             bulk = JSON.parse(bulk);
             i++;
             if (i >= 4) {
@@ -129,10 +111,10 @@ User.post("/call", async (req, res) => {
         }
 
         // GET CONTACT
-        let {popIndex: lastIndex, contactName} = chunk.bulk;
+        let {popIndex: lastIndex, contactName} = currentBulk;
 
         if (!bulk.length || Number(lastIndex) >= bulk.length || Number(lastIndex) >= bulk.length - 1) {
-            res.status(404).send("Chunk out of data.Re::Login");
+            res.status(404).send("Chunk out of data.Re::Login or Contact Administrator");
             return;
         }
 
@@ -156,6 +138,7 @@ User.post("/call", async (req, res) => {
                     otherUsers: true,
                 },
             });
+
             if (!checkContactIfCalled) {
                 console.log("Never called");
                 break;
@@ -171,16 +154,6 @@ User.post("/call", async (req, res) => {
 
         console.log("Contact to be used", contact);
 
-        let updatedChunk = await prisma.chunk.update({
-            where: {id: chunk.id},
-            data: {popCount: chunk.popCount + 1},
-        });
-
-        let updatedBulk = await prisma.bulk.update({
-            where: {id: chunk.bulk.id},
-            data: {popIndex: lastIndex + 1},
-        });
-
         const call = await prisma.call.upsert({
             where: {
                 contact: String(contact),
@@ -191,6 +164,11 @@ User.post("/call", async (req, res) => {
                         email,
                     },
                 },
+                bulk: {
+                    connect: {
+                        id: currentBulk.id
+                    }
+                },
                 contact,
             },
             update: {
@@ -198,6 +176,11 @@ User.post("/call", async (req, res) => {
                     connect: {
                         email,
                     },
+                },
+                bulk: {
+                    connect: {
+                        id: currentBulk.id
+                    }
                 },
                 contact,
                 otherUsers: otherUsers + email + ",",
@@ -207,6 +190,12 @@ User.post("/call", async (req, res) => {
                 contact: true,
             },
         });
+
+        let updatedBulk = await prisma.bulk.update({
+            where: {id: currentBulk.id},
+            data: {popIndex: lastIndex + 1},
+        });
+
 
         if (otherUsers) {
             call.otherUsers = otherUsers;

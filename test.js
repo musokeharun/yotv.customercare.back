@@ -1,24 +1,5 @@
-const fs = require("fs");
+const Report = require("./reports");
 
-const testJSON = fs.readFileSync(__dirname + "/result.json");
+let report = new Report(Report.ALL, Report.LAST_WEEK, Report.YESTERDAY);
 
-if (!testJSON) return "No data";
-
-const res = {
-  "01": 0,
-  "02": 0,
-  "03": 0,
-  "04": 0,
-  "05": 0,
-  "06": 0,
-};
-
-JSON.parse(testJSON).forEach((obj) => {
-  let m = obj["subscription_endtime"].substr(5, 2);
-  res[m] = res[m] + 1;
-  return;
-});
-
-// fs.writeFileSync(__dirname + "/result.json", JSON.stringify(filtered));
-console.log(res);
-console.log("Finished");
+report.totalAndRange().then(r => console.log(r)).catch(r => console.dir(r))

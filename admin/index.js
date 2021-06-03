@@ -93,7 +93,7 @@ Admin.post("/dashboard", async (req, res) => {
 
     // TODAY USER STATISTICS
     let currentData = await prisma.$queryRaw(
-      "SELECT u.email as label,COUNT(c.id) as value FROM `Call`	c LEFT JOIN `User` u ON u.id = c.userId WHERE date(CURRENT_DATE()) = date(c.`createdAt`) GROUP BY u.email ORDER BY u.email ASC;"
+      "SELECT u.email as label,COUNT(c.id) as value FROM `Call` c LEFT JOIN `User` u ON u.id = c.userId WHERE date(CURRENT_DATE()) = date(c.`createdAt`) GROUP BY u.email ORDER BY u.email ASC;"
     );
 
     let current = {
@@ -106,7 +106,7 @@ Admin.post("/dashboard", async (req, res) => {
 
     // YESTERDAY USER STATISTICS
     let yesterdayData = await prisma.$queryRaw(
-      "SELECT u.email as label,COUNT(c.id) as value FROM `Call`	c LEFT JOIN `User` u ON u.id = c.userId WHERE date( DATE_SUB(NOW(), INTERVAL 1 DAY) ) = date(c.`createdAt`) GROUP BY u.email ORDER BY u.email ASC;"
+      "SELECT u.email as label,COUNT(c.id) as value FROM `Call` c LEFT JOIN `User` u ON u.id = c.userId WHERE date( DATE_SUB(NOW(), INTERVAL 1 DAY) ) = date(c.`createdAt`) GROUP BY u.email ORDER BY u.email ASC;"
     );
 
     let yesterday = {

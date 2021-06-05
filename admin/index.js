@@ -3,6 +3,7 @@ const Admin = express.Router();
 const config = require("config");
 const { PrismaClient } = require("@prisma/client");
 const bcryptjs = require("bcryptjs");
+const Report = require("./reports");
 
 const prisma = new PrismaClient();
 
@@ -92,16 +93,12 @@ Admin.post("/dashboard", async (req, res) => {
     }
 
     // TODAY USER STATISTICS
-    let currentData = await prisma.$queryRaw(
-      "SELECT u.email as label,COUNT(c.id) as value FROM `Call` c LEFT JOIN `User` u ON u.id = c.userId WHERE date(CURRENT_DATE()) = date(c.`createdAt`) GROUP BY u.email ORDER BY u.email ASC;"
-    );
+    let report = new Report(Report.ALL, Report.TODAY, Report.TODAY);
 
-    let current = {
-      data: currentData,
-      title: "TODAY'S OVERVIEW",
-      type: "bar",
-      x: "User",
-      y: "Calls",
+    let today = {
+      customerCalls: await report.userAndCall(),
+      deviceAvailability : await report.deviceAvailability(),
+      customerResponse :await  report.customerResponse(),
     };
 
     // YESTERDAY USER STATISTICS
@@ -164,7 +161,7 @@ Admin.post("/dashboard", async (req, res) => {
       "today's calls": totalToday,
       "usage of datasource": currentBulk.popIndex,
       "total of datasource": currentBulk.data.length,
-      current,
+      current: today,
       yesterday,
       firstResponse,
       lastResponse,

@@ -82,12 +82,12 @@ class Report {
                     .toSQL({includeOffset: false});
                 break;
 
-          case LAST_WEEK:
-            this.from = DateTime.now()
-                .minus({weeks: 1})
-                .endOf("day")
-                .toSQL({includeOffset: false});
-            break;
+            case LAST_WEEK:
+                this.from = DateTime.now()
+                    .minus({weeks: 1})
+                    .endOf("day")
+                    .toSQL({includeOffset: false});
+                break;
 
             default:
                 this.to = DateTime.fromSQL(to)
@@ -147,6 +147,33 @@ class Report {
             `SELECT r.lastResponse as label, COUNT(r.id) as value FROM Response r INNER JOIN ${"`Call`"} c ON c.responseId = r.id WHERE date(updatedAt) BETWEEN date("${from}") AND date("${to}") GROUP BY r.lastResponse;`
         );
     };
+
+    othersList = (page = 1) => {
+
+        const {to, from} = this;
+
+        let pageSize = 50;
+        return prisma.call.findMany({
+            skip: (page - 1) * pageSize,
+            take: pageSize,
+            where: {
+                createdAt: {
+                    gte: DateTime.fromSQL(from).toJSDate()
+                }
+            },
+            select: {
+                reponse: {
+                    select: {
+                        other: true
+                    }
+                }
+            },
+            orderBy: {
+                createdAt: "desc"
+            }
+        })
+    }
+
 }
 
 module.exports = Report;

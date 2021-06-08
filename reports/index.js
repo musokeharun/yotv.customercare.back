@@ -149,9 +149,7 @@ class Report {
     };
 
     othersList = (page = 1) => {
-
-        const {to, from} = this;
-
+        const {from} = this;
         let pageSize = 50;
         return prisma.call.findMany({
             skip: (page - 1) * pageSize,
@@ -159,13 +157,20 @@ class Report {
             where: {
                 createdAt: {
                     gte: DateTime.fromSQL(from).toJSDate()
+                },
+                reponse: {
+                    NOT: {
+                        other: {
+                            in: [""]
+                        }
+                    }
                 }
             },
             select: {
                 reponse: {
                     select: {
                         other: true
-                    }
+                    },
                 }
             },
             orderBy: {

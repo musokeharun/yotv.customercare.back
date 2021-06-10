@@ -92,15 +92,6 @@ Admin.post("/dashboard", async (req, res) => {
             if (i >= 4) break;
         }
 
-        let users = await prisma.user.findMany({
-            select: {
-                email: true
-            },
-            where: {
-                isAdmin: false
-            }
-        });
-
         // TODAY USER STATISTICS
         let reportTODAY = new Report(Report.ALL, Report.TODAY, Report.TODAY);
 
@@ -116,7 +107,6 @@ Admin.post("/dashboard", async (req, res) => {
         let yesterday = {
             customerCalls: await reportYesterday.userAndCall(),
             deviceAvailability: await reportYesterday.deviceAvailability(),
-            customerResponse: await reportYesterday.customerResponse(),
         };
 
         // LAST WEEK USER STATISTICS
@@ -136,7 +126,6 @@ Admin.post("/dashboard", async (req, res) => {
             today,
             yesterday,
             lastWeek,
-            users
         });
     } catch (e) {
         console.log(e);

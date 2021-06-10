@@ -115,11 +115,34 @@ class Report {
         }
     }
 
-    userAndCall = () => {
-        const {user, from, to} = this;
-        return prisma.$queryRaw(
-            `SELECT u.email as label,COUNT(c.id) as value FROM ${"`Call`"} c LEFT JOIN User u ON u.id = c.userId WHERE date(c.createdAt) BETWEEN date("${from}") AND date("${to}") GROUP BY u.email ORDER BY u.email ASC;`
+    usersMap = async (values) => {
+        let users = await prisma.user.findMany({
+            select: {
+                email: true
+            },
+            where: {
+                isAdmin: false,
+                isActive: true
+            },
+            orderBy: {
+                email: "asc"
+            }
+        })
+        if (!Array.isArray(values)) return values;
+        return users.map(user => {
+            let found = values.find(value => value.label === user.email);
+            if (!found) return {label: user.email, value: 0};
+            return found;
+        });
+
+    };
+
+    userAndCall = async () => {
+        const {from, to} = this;
+        let values = await prisma.$queryRaw(
+            `SELECT u.email as label,COUNT(c.id) as value FROM ${"`Call`"} c LEFT JOIN User u ON u.id = c.userId INNER JOIN Response r ON c.responseId = r.id  WHERE  r.firstResponse = "RECEIVED" AND date(c.createdAt) BETWEEN date("${from}") AND date("${to}") GROUP BY u.email ORDER BY u.email ASC;`
         );
+        return await this.usersMap(values);
     };
 
     userAndResponse = () => {
@@ -144,7 +167,7 @@ class Report {
         const {from, to} = this;
 
         return prisma.$queryRaw(
-            `SELECT r.lastResponse as label, COUNT(r.id) as value FROM Response r INNER JOIN ${"`Call`"} c ON c.responseId = r.id WHERE date(updatedAt) BETWEEN date("${from}") AND date("${to}") GROUP BY r.lastResponse;`
+            `SELECT r.lastResponse as label, COUNT(r.id) as value FROM Response r INNER JOIN ${"`Call`"} c ON c.responseId = r.id WHERE r.lastResponse != "NO_RESPONSE" AND date(updatedAt) BETWEEN date("${from}") AND date("${to}") GROUP BY r.lastResponse;`
         );
     };
 

@@ -22,6 +22,7 @@
   "scripts": {
     "start": "npx prisma generate && node server.js",
     "server": "nodemon server.js",
+    "test": "node test.js",
     "client": "cd client && yarn start",
     "clientinstall": "cd client && yarn",
     "dev": "concurrently \"yarn server\" \"yarn client\""

@@ -8,6 +8,7 @@ bulk/uploads
 # env
 .env
 *.env
+./.env
 
 # Windows
 Thumbs.db
@@ -19,7 +20,7 @@ Desktop.ini
 *~
 
 # JetBrains
-.idea/
+.idea
 
 # npm
 node_modules

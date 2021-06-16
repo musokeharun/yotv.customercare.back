@@ -1,7 +1,7 @@
 const express = require("express");
 const User = express.Router();
 const jwt = require("jsonwebtoken");
-const bcryptjs = require("bcryptjs");
+const bcryptJs = require("bcryptjs");
 const config = require("config");
 
 const {PrismaClient} = require("@prisma/client");
@@ -36,7 +36,7 @@ User.post("/login", async (req, res) => {
             return;
         }
 
-        let passwordCorrect = bcryptjs.compareSync(password, user["password"]);
+        let passwordCorrect = bcryptJs.compareSync(password, user["password"]);
         if (!passwordCorrect) {
             res.status(404).send("Password Incorrect");
             return;
@@ -54,6 +54,18 @@ User.post("/login", async (req, res) => {
 User.post("/call", async (req, res) => {
     try {
         const {isAdmin, email} = res.locals.user;
+        const {v} = req.query;
+        const vendor = v ? await prisma.vendor.findUnique({
+            where: {
+                id: parseInt(v)
+            },
+            select: {
+                codes: true,
+                title: true
+            }
+        }) : null;
+
+        console.log(vendor);
 
         if (isAdmin) {
             return res.status(404).send("Not Allowed to Call");
@@ -74,11 +86,12 @@ User.post("/call", async (req, res) => {
         });
 
         if (notYetRespondedTo) {
+            console.log("NRT",notYetRespondedTo)
             res.json(notYetRespondedTo);
             return;
         }
 
-        // TODO GET NUMBER FROM BULK
+        // TODO GET BULK
         let currentBulk = await prisma.bulk.findFirst({
             where: {
                 status: true,
@@ -96,8 +109,8 @@ User.post("/call", async (req, res) => {
             return;
         }
 
-        console.log("Bulk Id", currentBulk.id);
-        console.log("Last Pop Index", currentBulk.popIndex);
+        // console.log("Bulk Id", currentBulk.id);
+        // console.log("Last Pop Index", currentBulk.popIndex);
 
         let bulk = currentBulk.data;
         let i = 0;
@@ -122,7 +135,7 @@ User.post("/call", async (req, res) => {
         let others;
         let otherUsers = null;
 
-        // TODO CHECK IF SUBSCRIBED IN WHILE LOOP
+        // TODO CHECK IF SUBSCRIBED AND LIES IN VENDOR CODES
         while (true) {
             others = bulk[lastIndex];
             contact = String(others[contactName]);
@@ -140,14 +153,20 @@ User.post("/call", async (req, res) => {
             });
 
             if (!checkContactIfCalled) {
-                console.log("Never called");
+                if (vendor) {
+                    if (!vendor['codes'].some(code => contact.startsWith(String(code)))) {
+                        lastIndex++;
+                        continue
+                    }
+                }
+                console.log(contact + " never called");
                 break;
             } else if (!checkContactIfCalled.respondedTo) {
-                console.log("Never responded to");
+                console.log("never responded to");
                 otherUsers = checkContactIfCalled.otherUsers || "";
                 break;
             } else {
-                console.log("Contact Once Called And Responded");
+                console.log("contact Once Called And Responded");
                 lastIndex++;
             }
         }
@@ -303,8 +322,33 @@ User.post("/response", async (req, res) => {
 
 User.post("/options", async (req, res) => {
     try {
-        const result = await prisma.$queryRaw("DESC Response;");
-        res.json(result);
+
+        const availability = ["BUSY", "RECEIVED", "REJECTED", "OFFLINE"];
+        const gender = ["FEMALE", "MALE", "NONE"];
+        const categories = await prisma.category.findMany({
+            select: {
+                title: true,
+                id: true,
+                subCategories: {
+                    select: {
+                        id: true,
+                        title: true
+                    }
+                }
+            },
+            where: {
+                isActive: true
+            }
+        });
+        const vendors = await prisma.vendor.findMany({
+            select: {
+                id: true,
+                title: true,
+                codes: true
+            }
+        });
+
+        res.json({availability, gender, categories, vendors});
     } catch (error) {
         console.log(error);
         res.status(500).send("Could not process");

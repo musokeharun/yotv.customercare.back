@@ -145,7 +145,12 @@ class Report {
         return await this.usersMap(values);
     };
 
-    userAndResponse = () => {
+    userAndTotalCalls = async () => {
+        const {from, to} = this;
+        let values = await prisma.$queryRaw(
+            `SELECT u.email as label,COUNT(c.id) as value FROM ${"`Call`"} c LEFT JOIN User u ON u.id = c.userId INNER JOIN Response r ON c.responseId = r.id  WHERE  date(c.createdAt) BETWEEN date("${from}") AND date("${to}") GROUP BY u.email ORDER BY u.email ASC;`
+        );
+        return await this.usersMap(values);
     };
 
     totalAndRange = async () => {
@@ -167,7 +172,15 @@ class Report {
         const {from, to} = this;
 
         return prisma.$queryRaw(
-            `SELECT r.lastResponse as label, COUNT(r.id) as value FROM Response r INNER JOIN ${"`Call`"} c ON c.responseId = r.id WHERE r.lastResponse != "NO_RESPONSE" AND date(updatedAt) BETWEEN date("${from}") AND date("${to}") GROUP BY r.lastResponse;`
+            `SELECT cC.title as label, COUNT(r.id) as value FROM Response r INNER JOIN ${"`Call`"} c ON c.responseId = r.id INNER JOIN SubCategory sC ON r.subCategoryId = sC.id INNER JOIN Category cC ON sC.categoryId = cC.id WHERE  date(c.updatedAt) BETWEEN date("${from}") AND date("${to}") GROUP BY cC.title;`
+        );
+    };
+
+    customerResponseCategory = (id) => {
+        const {from, to} = this;
+
+        return prisma.$queryRaw(
+            `SELECT sC.title as label, COUNT(r.id) as value FROM Response r INNER JOIN ${"`Call`"} c ON c.responseId = r.id INNER JOIN SubCategory sC ON r.subCategoryId = sC.id INNER JOIN Category cC ON sC.categoryId = cC.id WHERE cC.id = ${id} AND date(c.updatedAt) BETWEEN date("${from}") AND date("${to}") GROUP BY sC.title;`
         );
     };
 
@@ -181,7 +194,7 @@ class Report {
                 createdAt: {
                     gte: DateTime.fromSQL(from).toJSDate()
                 },
-                reponse: {
+                response: {
                     NOT: {
                         other: {
                             in: [""]
@@ -190,7 +203,7 @@ class Report {
                 }
             },
             select: {
-                reponse: {
+                response: {
                     select: {
                         other: true
                     },
@@ -200,6 +213,85 @@ class Report {
                 createdAt: "desc"
             }
         })
+    }
+
+    resolutionList = (page = 1) => {
+        const {from} = this;
+        let pageSize = 50;
+        return prisma.call.findMany({
+            skip: (page - 1) * pageSize,
+            take: pageSize,
+            where: {
+                createdAt: {
+                    gte: DateTime.fromSQL(from).toJSDate()
+                },
+                response: {
+                    NOT: {
+                        other: {
+                            in: [""]
+                        }
+                    }
+                }
+            },
+            select: {
+                response: {
+                    select: {
+                        resolution: true
+                    },
+                }
+            },
+            orderBy: {
+                createdAt: "desc"
+            }
+        })
+    };
+
+    suggestionList = (page = 1) => {
+        const {from} = this;
+        let pageSize = 50;
+        return prisma.call.findMany({
+            skip: (page - 1) * pageSize,
+            take: pageSize,
+            where: {
+                createdAt: {
+                    gte: DateTime.fromSQL(from).toJSDate()
+                },
+                response: {
+                    NOT: {
+                        other: {
+                            in: [""]
+                        }
+                    }
+                }
+            },
+            select: {
+                response: {
+                    select: {
+                        suggestion: true
+                    },
+                }
+            },
+            orderBy: {
+                createdAt: "desc"
+            }
+        })
+    }
+
+    likelyGraph = () => {
+        const {from, to} = this;
+
+        return prisma.$queryRaw(
+            `SELECT r.likely as label, COUNT(r.id) as value FROM Response r INNER JOIN ${"`Call`"} c ON c.responseId = r.id  WHERE r.likely > 0 AND date(c.updatedAt) BETWEEN date("${from}") AND date("${to}") GROUP BY r.likely;`
+        );
+    }
+
+
+    genderGraph = () => {
+        const {from, to} = this;
+
+        return prisma.$queryRaw(
+            `SELECT r.gender as label, COUNT(r.id) as value FROM Response r INNER JOIN ${"`Call`"} c ON c.responseId = r.id  WHERE r.gender != "NONE" AND date(c.updatedAt) BETWEEN date("${from}") AND date("${to}") GROUP BY r.gender;`
+        );
     }
 
 }

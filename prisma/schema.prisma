@@ -16,6 +16,7 @@ model Bulk {
   updatedAt   DateTime @updatedAt
   data        Json?
   popIndex    Int      @default(0)
+  usage       Int      @default(0)
   contactName String   @db.VarChar(255)
   status      Boolean  @default(false)
   calls       Call[]
@@ -60,7 +61,7 @@ model Response {
   likely        Int          @default(0)
   suggestion    String?
   resolution    String?
-  lastResponse  ResponseText @default(NO_RESPONSE)
+  lastResponse  ResponseText?
   subCategoryId Int?
   subCategory   SubCategory? @relation(fields: [subCategoryId], references: [id])
   call          Call?

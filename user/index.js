@@ -86,7 +86,7 @@ User.post("/call", async (req, res) => {
         });
 
         if (notYetRespondedTo) {
-            console.log("NRT",notYetRespondedTo)
+            console.log("NRT", notYetRespondedTo)
             res.json(notYetRespondedTo);
             return;
         }
@@ -101,6 +101,7 @@ User.post("/call", async (req, res) => {
                 data: true,
                 popIndex: true,
                 contactName: true,
+                usage: true
             },
         });
 
@@ -124,7 +125,10 @@ User.post("/call", async (req, res) => {
         }
 
         // GET CONTACT
-        let {popIndex: lastIndex, contactName} = currentBulk;
+        let {popIndex: lastIndex, contactName, usage} = currentBulk;
+        let startIndex = lastIndex;
+        let skippedInt = 0;
+        let skipped = false;
 
         if (!bulk.length || Number(lastIndex) >= bulk.length || Number(lastIndex) >= bulk.length - 1) {
             res.status(404).send("Chunk out of data.Re::Login or Contact Administrator");
@@ -155,6 +159,8 @@ User.post("/call", async (req, res) => {
             if (!checkContactIfCalled) {
                 if (vendor) {
                     if (!vendor['codes'].some(code => contact.startsWith(String(code)))) {
+                        skipped = true;
+                        skippedInt++;
                         lastIndex++;
                         continue
                     }
@@ -168,6 +174,7 @@ User.post("/call", async (req, res) => {
             } else {
                 console.log("contact Once Called And Responded");
                 lastIndex++;
+                // startIndex++;
             }
         }
 
@@ -212,7 +219,7 @@ User.post("/call", async (req, res) => {
 
         let updatedBulk = await prisma.bulk.update({
             where: {id: currentBulk.id},
-            data: {popIndex: lastIndex + 1},
+            data: {popIndex: skipped ? startIndex + 1 : lastIndex + 1, usage: usage + 1},
         });
 
 
@@ -234,15 +241,17 @@ User.post("/response", async (req, res) => {
     try {
         const {
             id,
+            contact,
             firstResponse,
             gender,
-            lastResponse,
+            subCategoryId,
             other,
             likely,
             resolution,
+            suggestion
         } = req.body;
 
-        if (!id || !firstResponse || firstResponse === "") {
+        if (!id || !contact || !firstResponse || firstResponse === "") {
             res.status(404).send("No response data");
             return;
         }
@@ -255,6 +264,7 @@ User.post("/response", async (req, res) => {
                 user: {
                     email,
                 },
+                contact
             },
             select: {
                 id: true,
@@ -273,7 +283,7 @@ User.post("/response", async (req, res) => {
                 data: {
                     firstResponse: firstResponse.toUpperCase(),
                     gender: "NONE",
-                    lastResponse: "NO_RESPONSE",
+                    other,
                     call: {
                         connect: {
                             id: Number(id),
@@ -282,7 +292,18 @@ User.post("/response", async (req, res) => {
                 },
             });
         } else {
-            if (!gender || !lastResponse || lastResponse == "") {
+
+            //firstResponse
+            // gender
+            // likely
+            // suggestion
+            // resolution
+            // subCategoryId
+            // subCategory
+            // call
+            // other
+            console.log("Received");
+            if (!gender || !subCategoryId || !likely) {
                 res.status(404).send("No response data");
                 return;
             }
@@ -291,15 +312,20 @@ User.post("/response", async (req, res) => {
                 data: {
                     firstResponse: firstResponse.toUpperCase(),
                     gender: gender.toUpperCase(),
-                    lastResponse: lastResponse.toUpperCase(),
                     likely: Number(likely),
-                    other,
+                    suggestion,
                     resolution,
+                    other,
                     call: {
                         connect: {
                             id: Number(id),
                         },
                     },
+                    subCategory: {
+                        connect:    {
+                            id: Number(subCategoryId)
+                        }
+                    }
                 },
             });
         }

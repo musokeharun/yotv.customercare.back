@@ -96,6 +96,7 @@ Admin.post("/dashboard", async (req, res) => {
         let reportTODAY = new Report(Report.ALL, Report.TODAY, Report.TODAY);
 
         let today = {
+            totalCalls: await reportTODAY.userAndTotalCalls(),
             customerCalls: await reportTODAY.userAndCall(),
             deviceAvailability: await reportTODAY.deviceAvailability(),
             customerResponse: await reportTODAY.customerResponse(),
@@ -105,6 +106,7 @@ Admin.post("/dashboard", async (req, res) => {
         // YESTERDAY USER STATISTICS
         let reportYesterday = new Report(Report.ALL, Report.YESTERDAY, Report.YESTERDAY);
         let yesterday = {
+            totalCalls: await reportYesterday.userAndTotalCalls(),
             customerCalls: await reportYesterday.userAndCall(),
             deviceAvailability: await reportYesterday.deviceAvailability(),
         };

@@ -120,7 +120,7 @@ model SubCategory {
   updatedAt  DateTime  @updatedAt @default(now())
   createdBy  Int?
   categoryId Int
-  response   Response?
+  responses  Response[]
 }
 
 model Vendor {

@@ -54,18 +54,18 @@ User.post("/login", async (req, res) => {
 User.post("/call", async (req, res) => {
     try {
         const {isAdmin, email} = res.locals.user;
-        const {v} = req.query;
-        const vendor = v ? await prisma.vendor.findUnique({
-            where: {
-                id: parseInt(v)
-            },
-            select: {
-                codes: true,
-                title: true
-            }
-        }) : null;
+        // const {v} = req.query;
+        // const vendor = v ? await prisma.vendor.findUnique({
+        //     where: {
+        //         id: parseInt(v)
+        //     },
+        //     select: {
+        //         codes: true,
+        //         title: true
+        //     }
+        // }) : null;
 
-        console.log(vendor);
+        // console.log(vendor);
 
         if (isAdmin) {
             return res.status(404).send("Not Allowed to Call");
@@ -127,8 +127,6 @@ User.post("/call", async (req, res) => {
         // GET CONTACT
         let {popIndex: lastIndex, contactName, usage} = currentBulk;
         let startIndex = lastIndex;
-        let skippedInt = 0;
-        let skipped = false;
 
         if (!bulk.length || Number(lastIndex) >= bulk.length || Number(lastIndex) >= bulk.length - 1) {
             res.status(404).send("Chunk out of data.Re::Login or Contact Administrator");
@@ -157,14 +155,14 @@ User.post("/call", async (req, res) => {
             });
 
             if (!checkContactIfCalled) {
-                if (vendor) {
-                    if (!vendor['codes'].some(code => contact.startsWith(String(code)))) {
-                        skipped = true;
-                        skippedInt++;
-                        lastIndex++;
-                        continue
-                    }
-                }
+                // if (vendor) {
+                //     if (!vendor['codes'].some(code => contact.startsWith(String(code)))) {
+                //         skipped = true;
+                //         skippedInt++;
+                //         lastIndex++;
+                //         continue
+                //     }
+                // }
                 console.log(contact + " never called");
                 break;
             } else if (!checkContactIfCalled.respondedTo) {
@@ -174,7 +172,6 @@ User.post("/call", async (req, res) => {
             } else {
                 console.log("contact Once Called And Responded");
                 lastIndex++;
-                // startIndex++;
             }
         }
 
@@ -219,7 +216,7 @@ User.post("/call", async (req, res) => {
 
         let updatedBulk = await prisma.bulk.update({
             where: {id: currentBulk.id},
-            data: {popIndex: skipped ? startIndex + 1 : lastIndex + 1, usage: usage + 1},
+            data: {popIndex: lastIndex + 1, usage: usage + 1},
         });
 
 
@@ -322,7 +319,7 @@ User.post("/response", async (req, res) => {
                         },
                     },
                     subCategory: {
-                        connect:    {
+                        connect: {
                             id: Number(subCategoryId)
                         }
                     }

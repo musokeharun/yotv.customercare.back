@@ -126,7 +126,7 @@ User.post("/call", async (req, res) => {
 
         // GET CONTACT
         let {popIndex: lastIndex, contactName, usage} = currentBulk;
-        let startIndex = lastIndex;
+        // let startIndex = lastIndex;
 
         if (!bulk.length || Number(lastIndex) >= bulk.length || Number(lastIndex) >= bulk.length - 1) {
             res.status(404).send("Chunk out of data.Re::Login or Contact Administrator");

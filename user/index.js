@@ -12,6 +12,7 @@ User.all("/", (req, res) => {
     res.send("Not Allowed");
 });
 
+
 User.post("/login", async (req, res) => {
     const {email, password} = req.body;
     if (!email || !password) {
@@ -86,7 +87,7 @@ User.post("/call", async (req, res) => {
         });
 
         if (notYetRespondedTo) {
-            console.log("NRT", notYetRespondedTo)
+            console.log("NRT",email,notYetRespondedTo)
             res.json(notYetRespondedTo);
             return;
         }
@@ -218,7 +219,6 @@ User.post("/call", async (req, res) => {
             where: {id: currentBulk.id},
             data: {popIndex: lastIndex + 1, usage: usage + 1},
         });
-
 
         if (otherUsers) {
             call.otherUsers = otherUsers;
@@ -370,12 +370,60 @@ User.post("/options", async (req, res) => {
                 codes: true
             }
         });
+        const users = await prisma.user.findMany({
+            where: {
+                isAdmin: false,
+                isActive: true
+            },
+            select: {
+                id: true,
+                email: true
+            }
+        })
 
-        res.json({availability, gender, categories, vendors});
+        res.json({availability, gender, categories, vendors, users});
     } catch (error) {
         console.log(error);
         res.status(500).send("Could not process");
     }
 });
+
+User.post("/forward", async (req, res) => {
+
+    const {call, user} = req.body;
+    const {email} = res.locals;
+
+    let userCall = await prisma.call.findUnique({
+        where: {
+            id: Number(call)
+        },select : {
+            id : true
+        }
+    });
+
+    if (!userCall) {
+        res.status(404).send("Call not found");
+        return;
+    }
+
+    let updatedCall = await prisma.call.update({
+        data: {
+            user: {
+                connect: {
+                    id: Number(user)
+                }
+            }
+        },
+        select: {
+            contact: true
+        },
+        where : {
+            id : Number(call)
+        }
+    })
+
+    res.send(updatedCall);
+    res.end();
+})
 
 module.exports = User;

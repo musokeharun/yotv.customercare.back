@@ -85,7 +85,7 @@ Data.post("/upload", (req, res) => {
       source: fs.readFileSync(uploadPath),
       columnToKey: {
         A: "msisdn",
-        B: "last_subscibed",
+        B: "last_subscribed",
         C: "amount",
       },
     });

@@ -91,6 +91,9 @@ enum FirstDegree {
   RECEIVED
   REJECTED
   OFFLINE
+  UNAVAILABLE
+  UNANSWERED
+  HANGUP
 }
 
 enum Gender {
@@ -129,4 +132,18 @@ model Vendor {
   codes     Json
   updatedAt DateTime @updatedAt @default(now())
   isActive  Boolean  @default(true)
+}
+
+model FreeTrial {
+  id        Int      @id @default(autoincrement())
+  title     String
+  status    Status
+  createdAt DateTime
+  updatedAt DateTime @updatedAt @default(now())
+}
+
+enum Status{
+    PENDING
+    SUCCESS
+    FAILURE
 }

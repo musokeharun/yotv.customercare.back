@@ -1,5 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const { DateTime } = require("luxon");
+
 const prisma = new PrismaClient({
   log: ["query"],
 });

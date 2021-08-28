@@ -167,5 +167,4 @@ Admin.all("/freetrial/generate", (async (req, res) => {
     res.json(data).end();
 }))
 
-
 module.exports = Admin;

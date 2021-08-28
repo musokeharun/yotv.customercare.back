@@ -3,7 +3,6 @@ const axios = require("axios");
 const {use} = require("express/lib/router");
 let url = "https://back-stats.yotvchannels.com/api/query/";
 
-
 class TrialUsers {
 
     from;

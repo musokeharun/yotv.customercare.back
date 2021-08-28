@@ -12,7 +12,6 @@ User.all("/", (req, res) => {
     res.send("Not Allowed");
 });
 
-
 User.post("/login", async (req, res) => {
     const {email, password} = req.body;
     if (!email || !password) {
@@ -87,7 +86,7 @@ User.post("/call", async (req, res) => {
         });
 
         if (notYetRespondedTo) {
-            console.log("NRT",email,notYetRespondedTo)
+            console.log("NRT", email, notYetRespondedTo)
             res.json(notYetRespondedTo);
             return;
         }
@@ -346,7 +345,7 @@ User.post("/response", async (req, res) => {
 User.post("/options", async (req, res) => {
     try {
 
-        const availability = ["BUSY", "RECEIVED", "REJECTED", "OFFLINE"];
+        const availability = ["BUSY", "RECEIVED", "UNAVAILABLE", "UNANSWERED", "HANGUP"];
         const gender = ["FEMALE", "MALE", "NONE"];
         const categories = await prisma.category.findMany({
             select: {
@@ -380,7 +379,6 @@ User.post("/options", async (req, res) => {
                 email: true
             }
         })
-
         res.json({availability, gender, categories, vendors, users});
     } catch (error) {
         console.log(error);
@@ -396,8 +394,8 @@ User.post("/forward", async (req, res) => {
     let userCall = await prisma.call.findUnique({
         where: {
             id: Number(call)
-        },select : {
-            id : true
+        }, select: {
+            id: true
         }
     });
 
@@ -417,8 +415,8 @@ User.post("/forward", async (req, res) => {
         select: {
             contact: true
         },
-        where : {
-            id : Number(call)
+        where: {
+            id: Number(call)
         }
     })
 

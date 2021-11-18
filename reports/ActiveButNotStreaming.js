@@ -67,24 +67,25 @@ class ActiveButNotStreaming {
     }
 
     async filter(data, key = "Customer", modifier = e => e) {
+        const result = [];
         for (let value of data) {
             value = value[key];
             console.log(`${new Date().toLocaleString()} Processing ${modifier(value)}`)
             const detail = await this.get(modifier(value));
             console.log(`${new Date().toLocaleString()} Processed ${modifier(value)}`)
             if (detail) {
-                console.log("First Detail", detail);
-                return detail;
+                // console.log("First Detail", detail);
+                result.push(detail);
             }
         }
-        return null;
+        return result;
     }
 
     getFromFile = (file) => {
         return getJSON(file);
     }
 
-    datatoFile = (data, name = "") => {
+    dataToFile = (data, name = "") => {
         try {
             json2excel({
                 data,

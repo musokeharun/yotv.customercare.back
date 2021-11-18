@@ -5,22 +5,23 @@ const {PrismaClient} = require("@prisma/client");
 const bcryptjs = require("bcryptjs");
 const Report = require("../reports");
 const TrialUsers = require("../reports/TrialUsers");
+const ActiveButNotStreaming = require("../reports/ActiveButNotStreaming");
 
 const prisma = new PrismaClient();
 
 const today = new Date();
 today.setUTCHours(0, 0, 0, 0);
 
-Admin.use((req, res, next) => {
-    const {isAdmin} = res.locals.user;
-    isAdmin
-        ? next()
-        : res
-            .status(403)
-            .send(
-                "Forbidden                                                                                                                                                                                                            "
-            );
-});
+// Admin.use((req, res, next) => {
+//     // const {isAdmin} = res.locals.user;
+//     // isAdmin
+//     //     ? next()
+//     //     : res
+//     //         .status(403)
+//     //         .send(
+//     //             "Forbidden                                                                                                                                                                                                            "
+//     //         );
+// });
 
 Admin.all("/", (req, res) => {
     res.status(403).send("Not allowed");
@@ -166,5 +167,13 @@ Admin.all("/freetrial/generate", (async (req, res) => {
     // const user = await trial.getSubscription(data[0]['ID'])
     res.json(data).end();
 }))
+
+Admin.all("/report/active-not-streaming", (async (req, res) => {
+    const contact = req.query["contact"] || req.body['contact'];
+    const activeButNotStreaming = new ActiveButNotStreaming();
+    const data = await activeButNotStreaming.filter(activeButNotStreaming.getFromFile("Nov.csv"), "Customer", e => `0${e}`);
+    res.json(data).end();
+}))
+
 
 module.exports = Admin;

@@ -52,7 +52,7 @@ class ActiveButNotStreaming {
     async get(contact) {
         let {usage, billing} = await getData(contact);
         let activeSub = getActiveSub(billing);
-        const watchingTimes = Object.keys(usage).map(e => [e, convertToISoTime(parseInt(e))]);
+        const watchingTimes = !usage ? [] : Object.keys(usage).map(e => [e, convertToISoTime(parseInt(e))]);
         if (activeSub) {
             const watched = watchingTimes.some(w => w[1] > activeSub['viewers_bouquets_active_from'])
             if (!watched)

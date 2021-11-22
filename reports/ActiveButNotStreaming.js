@@ -3,7 +3,7 @@ const axios = require("axios");
 const path = require("path");
 const excelToJson = require("convert-excel-to-json");
 const fs = require("fs");
-let {json2excel} = require('js2excel');
+const {Parser} = require('json2csv');
 
 const products = [3, 4, 5, 6, 9];
 
@@ -85,15 +85,15 @@ class ActiveButNotStreaming {
         return getJSON(file);
     }
 
-    dataToFile = (data, name = "") => {
+    dataToFile = async (data, name = "") => {
         try {
-            json2excel({
-                data,
-                name,
-                formateDate: 'yyyy/mm/dd',
+            const json2csvParser = new Parser({quote: ''});
+            const csv = json2csvParser.parse(data);
+            await fs.writeFile(path.join(__dirname, "../", "writable", "Out", `${name}.csv`), csv, (e) => {
+                console.log("Error", e);
             });
         } catch (e) {
-            console.error('export error');
+            console.error('export error', e);
         }
     }
 

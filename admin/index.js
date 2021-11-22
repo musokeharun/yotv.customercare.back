@@ -171,7 +171,7 @@ Admin.all("/freetrial/generate", (async (req, res) => {
 Admin.all("/report/active-not-streaming", (async (req, res) => {
     res.json("Started...||").end();
     const activeButNotStreaming = new ActiveButNotStreaming();
-    const data = await activeButNotStreaming.filter(activeButNotStreaming.getFromFile("Oct.csv"), "Customer", e => `0${e}`);
+    const data = await activeButNotStreaming.filter(activeButNotStreaming.getFromFile("Nov.csv"), "Customer", e => `0${e}`);
     await activeButNotStreaming.dataToFile(data, `Nov${new Date().getTime()}`)
 }))
 
